@@ -19,5 +19,6 @@ else :
             passe = False
             break
     if passe :
-        moy = tot/(len(sys.argv)-1)
-        print ("Moyenne = ",moy)
+        moy = float(tot/(len(sys.argv)-1))
+        print(moy)
+        print ("Moyenne = %.2f" %moy)
