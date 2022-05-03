@@ -6,7 +6,6 @@ for i in range(N) :
     for i in range(3) :
         if os.fork() != 0 :
             break
-
 # __________fin des ajouts__________
 print("Bonjour")
 sys.exit(0)
