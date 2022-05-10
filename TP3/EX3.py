@@ -29,7 +29,7 @@ def FiltreImpaire(receive_NImpaire, send_somme_impaire):
 
 
 if __name__ == "__main__":
-    N = 50000000
+    N = 500
     receive_NPaire, send_NPaire = mp.Pipe()
     receive_NImpaire, send_NImpaire = mp.Pipe()
     receive_somme_paire, send_somme_paire = mp.Pipe()
