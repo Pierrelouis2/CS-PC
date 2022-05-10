@@ -13,7 +13,7 @@ for i in dicoNotes :
         length = len(moy_str)
         os.close(dfr)
         os.write(dfw,length.to_bytes(4,byteorder='little',signed=True)) 
-        n = os.write(dfw ,moy_str)
+        os.write(dfw ,moy_str)
         os.close(dfw)
         break
     else :
