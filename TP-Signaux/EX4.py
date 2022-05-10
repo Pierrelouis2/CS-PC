@@ -1,12 +1,12 @@
 import signal,time,sys,os
 import multiprocessing as mp
 
-def F(s, frame):
+def F():
     while True:
         time.sleep(1)
         print("boucle du fils")    
 
-Process = mp.Process(target= F, args =(None,None))
+Process = mp.Process(target= F, args =())
 
 Process.start()
 
