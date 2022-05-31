@@ -92,9 +92,10 @@ def prise_en_compte_signaux(signum, frame) :
     print("Fini")
     sys.exit(0)
 # ---------------------------------------------------
-def arbitre(lst_positions,keep_running,verrou) :
+def arbitre(lst_positions,verrou,keep_running) :
     ind_maxi = 0
-    while keep_running.value :
+    ind_mini = 0
+    while keep_running :
         
         verrou.acquire()
         lst=lst_positions[:]
@@ -103,15 +104,21 @@ def arbitre(lst_positions,keep_running,verrou) :
             maxi=max(lst)
             ind_maxi=lst.index(maxi)
         
+        if lst[ind_mini] != LONGEUR_COURSE - 1 :
+            mini = min(lst)
+            ind_mini = lst.index(mini)
+
 
         verrou.acquire()
         move_to(Nb_process+12, 1)
         erase_line_from_beg_to_curs()
-        print("le chaval le plus rapide est : ",'('+chr(ord('A')+ind_maxi)+'>')
+        print("le cheval le plus rapide est : ",'('+chr(ord('A')+ind_maxi)+'>',"le cheval le plus lent est : ",'('+chr(ord('A')+ind_mini)+'>')
         verrou.release()
+        if lst[ind_mini] == LONGEUR_COURSE -1 :
+            keep_running = False
         try :
             time.sleep(0.1 * random.randint(1,5))
-        except :
+        finally :
             pass
         
 
@@ -128,13 +135,11 @@ if __name__ == "__main__" :
                 CL_DARKGRAY, CL_LIGHTRED, CL_LIGHTGREEN,  CL_LIGHTBLU, CL_YELLOW, CL_LIGHTMAGENTA, CL_LIGHTCYAN]
     
     LONGEUR_COURSE = 100 # Tout le monde aura la même copie (donc no need to have a 'value')
-    
     keep_running=mp.Value(ctypes.c_bool, True)
 
     Nb_process=20
     mes_process = [0 for i in range(Nb_process)]
     lst_positions = mp.Array('i',Nb_process)
-    keep_running=mp.Value(ctypes.c_bool, True)
  
     signal.signal(signal.SIGQUIT , prise_en_compte_signaux)
 
@@ -151,13 +156,13 @@ if __name__ == "__main__" :
     move_to(Nb_process+10, 1)
     print("tous lancés, Controle-C pour tout arrêter")
 
-    proc_arbitre = mp.Process(target = arbitre,args=(lst_positions,keep_running,verrou))
+    proc_arbitre = mp.Process(target = arbitre,args=(lst_positions,verrou,keep_running))
     proc_arbitre.start()
-    proc_arbitre.join()
+    
 
     # On attend la fin de la course
     for i in range(Nb_process): mes_process[i].join()
-
-    move_to(Nb_process+12, 1)
+    proc_arbitre.join()
+    move_to(Nb_process+13, 1)
     curseur_visible()
     print("Fini")
