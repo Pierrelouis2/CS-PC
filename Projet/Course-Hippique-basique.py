@@ -59,17 +59,18 @@ def en_rouge() : print(CL_RED,end='') # Un exemple !
 # La tache d'un cheval
 def un_cheval(ma_ligne : int, keep_running,lst_positions,verrou) : # ma_ligne commence à 0
     col=1
-
+    dessin = ["    °",'-('+chr(ord('A')+ma_ligne)+'>',"/  /"]
     
     while col < LONGEUR_COURSE and keep_running.value :
         verrou.acquire()
-        move_to(ma_ligne+1,col)         # pour effacer toute ma ligne
-        erase_line_from_beg_to_curs()
-        en_couleur(lyst_colors[ma_ligne%len(lyst_colors)])
-        print('('+chr(ord('A')+ma_ligne)+'>')
+        for i,d in enumerate(dessin) :
+            move_to(ma_ligne*len(dessin)+1+i,col)         # pour effacer toute ma ligne
+            erase_line_from_beg_to_curs()
+            en_couleur(lyst_colors[ma_ligne%len(lyst_colors)])
+            print(d)
         lst_positions[ma_ligne] = col
         verrou.release()
-        
+
         col+=1
 
         try : # En cas d'interruption
@@ -116,6 +117,14 @@ def arbitre(lst_positions,verrou,keep_running) :
         verrou.release()
         if lst[ind_mini] == LONGEUR_COURSE -1 :
             keep_running = False
+            if PARI == chr(ord('A')+ind_maxi) :
+                move_to(Nb_process+13, 1)
+                erase_line_from_beg_to_curs()
+                print("pari gagnant")
+            else :
+                move_to(Nb_process+13, 1)
+                erase_line_from_beg_to_curs()
+                print("pari perdu")
         try :
             time.sleep(0.1 * random.randint(1,5))
         finally :
@@ -137,7 +146,7 @@ if __name__ == "__main__" :
     LONGEUR_COURSE = 100 # Tout le monde aura la même copie (donc no need to have a 'value')
     keep_running=mp.Value(ctypes.c_bool, True)
 
-    Nb_process=20
+    Nb_process=4
     mes_process = [0 for i in range(Nb_process)]
     lst_positions = mp.Array('i',Nb_process)
  
@@ -148,21 +157,26 @@ if __name__ == "__main__" :
 
     verrou = mp.Semaphore(1)
 
+    PARI = input("qui sera la gagnant : (lettre en majuscule) ")
+    start = input("depart : T ? F ?")
 
-    for i in range(Nb_process):  # Lancer     Nb_process  processus
-        mes_process[i] = mp.Process(target=un_cheval, args= (i,keep_running,lst_positions,verrou))
-        mes_process[i].start()
+    if start == "T" :
 
-    move_to(Nb_process+10, 1)
-    print("tous lancés, Controle-C pour tout arrêter")
 
-    proc_arbitre = mp.Process(target = arbitre,args=(lst_positions,verrou,keep_running))
-    proc_arbitre.start()
-    
+        for i in range(Nb_process):  # Lancer     Nb_process  processus
+            mes_process[i] = mp.Process(target=un_cheval, args= (i,keep_running,lst_positions,verrou))
+            mes_process[i].start()
 
-    # On attend la fin de la course
-    for i in range(Nb_process): mes_process[i].join()
-    proc_arbitre.join()
-    move_to(Nb_process+13, 1)
-    curseur_visible()
-    print("Fini")
+        move_to(Nb_process+10, 1)
+        print("tous lancés, Controle-C pour tout arrêter")
+
+        proc_arbitre = mp.Process(target = arbitre,args=(lst_positions,verrou,keep_running))
+        proc_arbitre.start()
+        
+
+        # On attend la fin de la course
+        for i in range(Nb_process): mes_process[i].join()
+        proc_arbitre.join()
+        move_to(Nb_process+14, 1)
+        curseur_visible()
+        print("Fini")
