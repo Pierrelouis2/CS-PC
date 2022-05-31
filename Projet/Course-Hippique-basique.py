@@ -60,11 +60,16 @@ def en_rouge() : print(CL_RED,end='') # Un exemple !
 def un_cheval(ma_ligne : int, keep_running) : # ma_ligne commence à 0
     col=1
 
+    lock_affichage = mp.Semaphore(1)
+
+
     while col < LONGEUR_COURSE and keep_running.value :
+        lock_affichage.acquire()
         move_to(ma_ligne+1,col)         # pour effacer toute ma ligne
         erase_line_from_beg_to_curs()
         en_couleur(lyst_colors[ma_ligne%len(lyst_colors)])
         print('('+chr(ord('A')+ma_ligne)+'>')
+        lock_affichage.release()
 
         col+=1
         
