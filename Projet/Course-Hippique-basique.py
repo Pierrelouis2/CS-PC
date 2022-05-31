@@ -57,22 +57,21 @@ def en_rouge() : print(CL_RED,end='') # Un exemple !
 
 #-------------------------------------------------------
 # La tache d'un cheval
-def un_cheval(ma_ligne : int, keep_running) : # ma_ligne commence à 0
+def un_cheval(ma_ligne : int, keep_running,lst_positions,verrou) : # ma_ligne commence à 0
     col=1
 
-    lock_affichage = mp.Semaphore(1)
-
-
+    
     while col < LONGEUR_COURSE and keep_running.value :
-        lock_affichage.acquire()
+        verrou.acquire()
         move_to(ma_ligne+1,col)         # pour effacer toute ma ligne
         erase_line_from_beg_to_curs()
         en_couleur(lyst_colors[ma_ligne%len(lyst_colors)])
         print('('+chr(ord('A')+ma_ligne)+'>')
-        lock_affichage.release()
-
-        col+=1
+        lst_positions[ma_ligne] = col
+        verrou.release()
         
+        col+=1
+
         try : # En cas d'interruption
             time.sleep(0.1 * random.randint(1,5))
         finally : 
@@ -93,6 +92,34 @@ def prise_en_compte_signaux(signum, frame) :
     print("Fini")
     sys.exit(0)
 # ---------------------------------------------------
+def arbitre(lst_positions,keep_running,verrou) :
+    ind_maxi = 0
+    while keep_running.value :
+        
+        verrou.acquire()
+        lst=lst_positions[:]
+        verrou.release()
+        if lst[ind_maxi] != LONGEUR_COURSE - 1 :
+            maxi=max(lst)
+            ind_maxi=lst.index(maxi)
+        
+
+        verrou.acquire()
+        move_to(Nb_process+12, 1)
+        erase_line_from_beg_to_curs()
+        print("le chaval le plus rapide est : ",'('+chr(ord('A')+ind_maxi)+'>')
+        verrou.release()
+        try :
+            time.sleep(0.1 * random.randint(1,5))
+        except :
+            pass
+        
+
+
+
+
+
+# ---------------------------------------------------
 # La partie principale :
 if __name__ == "__main__" :
     
@@ -106,20 +133,27 @@ if __name__ == "__main__" :
 
     Nb_process=20
     mes_process = [0 for i in range(Nb_process)]
-    
-    signal.signal(signal.SIGINT , prise_en_compte_signaux)
+    lst_positions = mp.Array('i',Nb_process)
+    keep_running=mp.Value(ctypes.c_bool, True)
+ 
     signal.signal(signal.SIGQUIT , prise_en_compte_signaux)
 
     effacer_ecran()
     curseur_invisible()
 
+    verrou = mp.Semaphore(1)
+
+
     for i in range(Nb_process):  # Lancer     Nb_process  processus
-        mes_process[i] = mp.Process(target=un_cheval, args= (i,keep_running,))
+        mes_process[i] = mp.Process(target=un_cheval, args= (i,keep_running,lst_positions,verrou))
         mes_process[i].start()
 
     move_to(Nb_process+10, 1)
     print("tous lancés, Controle-C pour tout arrêter")
 
+    proc_arbitre = mp.Process(target = arbitre,args=(lst_positions,keep_running,verrou))
+    proc_arbitre.start()
+    proc_arbitre.join()
 
     # On attend la fin de la course
     for i in range(Nb_process): mes_process[i].join()
