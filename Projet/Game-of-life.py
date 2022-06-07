@@ -88,15 +88,14 @@ def next_generation(LIGNES,COLONNES,GRID) :
             if GRID[l][c] == 0 and voisin_vivant == 3 :
                 GRID[l][c] = 1
 
-
     s_grid.send(GRID)
-    print("test")
     sys.exit(0)
     
 def display(GRID,LIGNES,COLONNES):
     effacer_ecran()
-    for p in range(LIGNES) :
-        for j in range(COLONNES):
+
+    for p in range(COLONNES) :
+        for j in range(LIGNES):
                 if GRID[p][j] == 1 :
                     GRID[p][j] = '#'
                 else :
@@ -112,11 +111,11 @@ def display(GRID,LIGNES,COLONNES):
 
 if __name__ == '__main__':
 
-    LIGNES= 30
-    COLONNES = 30
-    proba = [0 for i in range(10)]
+    LIGNES= 50
+    COLONNES = 100
+    proba = [0 for i in range(15)]
     proba[0] = 1
-    GRID_i = [[rand.choice(proba) for i in range(LIGNES)] for j in range(COLONNES)]
+    GRID_i = [[rand.choice(proba) for i in range(COLONNES)] for j in range(LIGNES)]
     r_grid,s_grid = mp.Pipe()
     gen_numb =0
     while True :
